@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "node test"
+  },
+  "author": "coredigix",
+  "license": "MIT",
+  "devDependencies": {
+    "gulp": "^3.9.1"
+  },
+  "dependencies": {
+    "gulp-include": "^2.3.1",
+    "gulp-minify": "^2.1.0",
+    "gulp-rename": "^1.2.2"
+  },
+  "name": "coredigix-ajax",
+  "description": "use http interface with promises",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coredigix/coredigix-ajax.git"
+  },
+  "keywords": [
+    "ajax",
+    "http",
+    "download",
+    "upload",
+    "post",
+    "get",
+    "delete",
+    "put"
+  ],
+  "bugs": {
+    "url": "https://github.com/coredigix/coredigix-ajax/issues"
+  },
+  "homepage": "https://github.com/coredigix/coredigix-ajax#readme"
+}
