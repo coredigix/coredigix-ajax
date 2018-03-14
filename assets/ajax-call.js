@@ -45,7 +45,7 @@ class XHR{
 					//prepare data if post
 						if(type === 'POST'){
 							tmpOptions = options.data;
-							
+
 						}
 				//add type
 					options.type	= type;
@@ -75,6 +75,35 @@ class XHR{
    		}
    		this.promise.resolve.apply(this.promise, null);
    		return this;
+   	}
+   	param(a, b){
+   		var url				= this._options.url,
+   			searchParams	= url.searchParams,
+   			result 			= this;
+
+   		//.param(name, value)
+   			if(typeof a === 'string'){
+   				if(b) _addParams(a, b);
+   			}
+   		//.param({name	: value})
+   			else if(objUtils.isPlainObj()){
+   				url.search	= ''; // remove all entries
+				for(key in a)
+					_addParams(key, a[key]);
+   			}
+   		//end
+   			return result;
+
+   		// add params
+			function _addParams(){
+				var i, c;
+				if(Array.isArray(b)){
+					for(i = 0, c = b.length; i < c; ++i)
+						searchParams.set(a, b[i]);
+				}
+				else
+					searchParams.set(a, b);
+			}
    	}
     then (){
 		return this.promise.then.apply(this.promise, arguments)
