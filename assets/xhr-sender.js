@@ -22,10 +22,13 @@ function sendXHR (resolve, reject) {
 		xhr.onreadystatechange = (event => {
 			//Done
 				if(xhr.readyState == 4){
-					if(xhr.status >= 200 && xhr.status <= 299)
-						resolve(xhr.responseText);
-					else // error
-						reject(xhr);
+					if(this.flags.abort){}
+					else{
+						if(xhr.status >= 200 && xhr.status <= 299)
+							resolve(xhr.responseText);
+						else // error
+							reject(xhr);
+					}
 				}
 		});
 	//open

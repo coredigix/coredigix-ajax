@@ -23,8 +23,4 @@ $$.head('url')
 	.param({name:value})
 
 	.data(obj || formData || HTMLForm || text) // set or get the data
-
-	.requestHeader('key', value)
-	.responseHeader('key')
-
 	
