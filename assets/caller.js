@@ -23,7 +23,13 @@ class AjaxCaller extends Promise{
 				// process options
 				_ajaxProcessOptions(this, options);
 				// make native call
-				xhrCall(this, options);
+				if(typeof options.wait === 'number')
+					private.timeout = setTimeout(() => {
+						private.timeout = null;
+						xhrCall(this, options);
+					}, options.wait);
+				else
+					xhrCall(this, options);
 			}catch(err){
 				private.reject(err);
 			}
