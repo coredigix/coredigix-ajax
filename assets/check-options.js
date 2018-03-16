@@ -4,11 +4,11 @@
 function _ajaxCheckOptions(xhr, options){
 	AJAX_OPTIONS.forEach(item => {
 		if(options.hasOwnProperty(item.param))
-			item.assert(options[item.param]);
+			item.assert(options[item.param], options);
 		else if(item.required === true)
 			throw new Error('Needs option ' + item.param);
 		else if(item.hasOwnProperty('default'))
-			options[item.param]	= item.default();
+			options[item.param]	= item.default(options);
 	});
 }
 
@@ -27,14 +27,21 @@ const AJAX_OPTIONS = [
 	},{
 		param	: 'wait',
 		assert	: wait	=> assert(typeof wait === 'number' && wait >= 0, 'wait must be of type number and greater or equals than 0'),
-		default : 0
+		default : () => 0
 	},{
 		param	: 'cache',
 		assert	: cache	=> assert(typeof cache === 'boolean', 'cache must be of type boolean'),
-		default	: true
+		default	: () => true
 	},{
 		param	: 'dataType',
-		assert	: dataType => assert(typeof dataType === 'string', 'dataType must be of type string')
+		assert	: dataType => assert(typeof dataType === 'string', 'dataType must be of type string'),
+		default	: (options) => {
+			if(options.data !== undefined)
+				return _guessDataType(options.data);
+		}
+	},{
+		param	: 'data',
+		assert	: (data, options) => assert(options.type === 'POST' || options.type === 'PUT', 'Sending data requires POST or PUT request')
 	},{
 		param	: 'dataCharset',
 		assert	: dataCharset => assert(typeof dataCharset === 'string', 'dataCharset must be of type string')

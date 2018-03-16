@@ -38,18 +38,16 @@ ajaxUtils
 
 /*<!>*/		.xhr			// get native XHR
 
-		.id('group.subGroup')	// grouper l'appel pour event
+/*<!>*/		.id('group.subGroup')	// grouper l'appel pour event
 
 		.url			// current URL
 		.originalURL	// url used to execute this call
 
-		.urlDecoder(url => url) // optional, decoder to decode URL
-
-/*<!>*/		.goToURL(url)	// make redirect to this URL, before the request done only
+		.goToURL(url)	// make redirect to this URL, before the request done only
 
 
 		.timeout(int)	// request timeout, modifiable in progress mode
-/*<!>*/		.on('timeout', event => {})
+/*<!>*/	.on('timeout', event => {})
 		.wait(int)		// time to wait before handling request, if lazy, waiting after enabling request
 		/**
 		 * add request to a queu
@@ -57,19 +55,19 @@ ajaxUtils
 		 * @param {int} timeout timeout to wait inside queu
 		 * @param {boolean} forceCall make call if timeout
 		 */
-/*<!>*/		.lazy('groupBy (queu name)', timeout, forceCall)	// if lazy, time to wait in the queu
+/*<!>*/	.lazy('groupBy (queu name)', timeout, forceCall)	// if lazy, time to wait in the queu
 
 		.cache(state) // enable/desable navigator cache
 
 		.followMetaRedirects(state)	// if follow meta redirects
 		.followMetaRedirects((url, xhr) => {})	// on before following metaredirect, if return is false, == do not follow
 
-/*<!>*/		.abort() 	// cancel the request
-/*<!>*/		.abort(raison) // cancel the request with message
-/*<!>*/		.on('abort', event => {})
+		.abort() 	// cancel the request
+		.abort(raison) // cancel the request with message
+		.abort(event => {})
 
-/*<!>*/		.retry() // refire request
-/*<!>*/		.on('retry', event => {})
+		.replay() // refire request
+		.replay(event => {})
 
 
 		.param()				// get all GET params
@@ -79,20 +77,20 @@ ajaxUtils
 		.accepts('json')	// set accepted mimetypes, === header({accept: 'json'})
 		.accepts(['json'])	// set accepted mimetypes, === header({accept: arg.join(',')})
 
-/*<!>*/		.header() 					// get all request header
-/*<!>*/		.header('name')			// get a request header
-/*<!>*/		.header({key:value}) 		// override all headers
+		.header() 					// get all request header
+		.header('name')			// get a request header
+		.header({key:value}) 		// override all headers
 
-/*<!>*/		.removeHeader('headerName')
+		.removeHeader('headerName')
 
-/*<!>*/		.readyState	// getter Ready state [0, 1, 2, 3, 4]
-/*<!>*/		.on('readyStateChange', cb)	// fired when readystate changes (async)
+		.readyState	// getter Ready state [0, 1, 2, 3, 4]
+		.on('readyStateChange', cb)	// fired when readystate changes (async)
 
-/*<!>*/		.uploadProgress()	// get progress percent, 0 to 1
-/*<!>*/		.uploadProgress(({percent, totalBytes, uploadedBytes}) => {}) // == on('uploadProgress', cb)
+		.uploadProgress()	// {percent, totalBytes, uploadedBytes}
+		.uploadProgress(({percent, totalBytes, uploadedBytes}) => {}) // == on('uploadProgress', cb)
 
-/*<!>*/		.downloadProgress()	// get progress from 0 to 1
-/*<!>*/		.downloadProgress(({percent, totalBytes, donwloadedBytes}) => {}) // == on('downloadProgress', cb)
+		.downloadProgress()	// {percent, totalBytes, uploadedBytes}
+		.downloadProgress(({percent, totalBytes, donwloadedBytes}) => {}) // == on('downloadProgress', cb)
 
 		//POST Data
 			.data()		// get data to be posted
@@ -107,27 +105,27 @@ ajaxUtils
 		// Response
 			.parser()			// get used deserializer
 			.parser((data, dataType) => parsedData) // pase server response
-/*<!>*/			.response			// get parsed server response
-/*<!>*/			.nativeResponse		// response before parsing
+			.response			// get parsed server response
+			.nativeResponse		// response before parsing
 
 			.responseType(str)	// force this response type, server say it "text" instead of "json"
 
-/*<!>*/			.responseHeader()				// get all response headers
-/*<!>*/			.responseHeader('headerName')	// get this response header
-/*<!>*/			.responseHeader(this => {})		// syn when headers received
+			.responseHeader()				// get all response headers
+			.responseHeader('headerName')	// get this response header
+			.responseHeader(this => {})		// syn when headers received
 
-/*<!>*/			.contentType		// get content type === responseHeader('content-type').split(' ')[0]
-/*<!>*/			.responseCharset	// get response encoding === responseHeader('content-type').split(' ')[1]
+			.contentType		// get content type === responseHeader('content-type').split(' ')[0]
+			.contentCharset	// get response encoding === responseHeader('content-type').split(' ')[1]
 
-/*<!>*/			.status()		// get http status		, example: 404, 200, 500, ...
-/*<!>*/			.statusText	// get HTTP status text, example: not found
+			.status()		// get http status		, example: 404, 200, 500, ...
+			.statusText	// get HTTP status text, example: not found
 
-/*<!>*/			.status({ // sync callback, before calling "then" after parsing
-/*<!>*/				200		: (err, this) => {true | false}, // cb when status is 200
-/*<!>*/				'40x'	: cb, // cb when status is 400 to 409
-/*<!>*/				'5xx'	: cb, // cb when status is 500 to 599
-/*<!>*/				'300-405':cb, // cb when status is between 300 and 405
-/*<!>*/			})
+			.status({ // sync callback, before calling "then" after parsing
+				200		: (this) => {true | false}, // cb when status is 200
+				'40x'	: cb, // cb when status is 400 to 409
+				'5xx'	: cb, // cb when status is 500 to 599
+				'300-405':cb, // cb when status is between 300 and 405
+			})
 
 		// change native xhr before sending request
 			.beforeSend(this => {})
@@ -142,7 +140,7 @@ ajaxUtils
 			.trigger('eventName', event)
 
 		// infos
-/*<!>*/			.redirectTrace	// array containings all redirect urls
+			.redirectStack	// array containings all redirect urls
 			// example: [
 			// 		{ // http permanent redirect, only on server side, in navigator side
 			// 			url	: '*******',

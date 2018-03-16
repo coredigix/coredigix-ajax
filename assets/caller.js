@@ -5,48 +5,105 @@ const AJAX_PRIVATE_SYMB	= Symbol();
 class AjaxCaller extends Promise{
 	constructor(options){
 		var private = {
-			readyState	= 0
+			// redirect : false // redirect flag
+			redirectStack: [];
 		};
-		super((resolve, reject) => {
-			private.resolve = resolve;
-			private.reject	= reject;
+		var resolve, reject;
+		super((res, rej) => {
+			resolve = res;
+			reject	= rej;
 		});
 
 		this[AJAX_OPTIONS_SYMB]	= options;
 		this[AJAX_PRIVATE_SYMB] = private;
 		// apply options
-		private.timeout = setTimeout(() => {
-			try{
-				private.timeout = null;
-				// check options
-				_ajaxCheckOptions(this, options);
-				// process options
-				_ajaxProcessOptions(this, options);
-				// make native call
-				if(typeof options.wait === 'number')
-					private.timeout = setTimeout(() => {
-						private.timeout = null;
-						xhrCall(this, options);
-					}, options.wait);
-				else
-					xhrCall(this, options);
-			}catch(err){
-				private.reject(err);
-			}
-		}, 0);
+		private.waitP	= delay(0);
+		var p = ;
+		resolve(async () => {
+			do {
+				try {
+					private.redirect	= false;
+					private.redirectStack.push(options.url);
+					await ajaxCallerRequest(xhr, options);
+				} catch(err) {
+					if(private.redirect !== true)
+						throw err;
+				}
+			} while(private.redirect === true);
+			this[AJAX_PRIVATE_SYMB].done = true;
+		});
 	}
 
 	get readyState(){
-		return this[AJAX_PRIVATE_SYMB].readyState;
+		return this.xhr === undefined ? 0 : this.xhr.readyState;
+	}
+	get response(){
+		return this[AJAX_PRIVATE_SYMB].response;
+	}
+	get nativeResponse(){
+		return this.xhr && this.xhr.responseText;
+	}
+	get statusText(){
+		return this.xhr && this.xhr.statusText;
+	}
+	/**
+	 * get status
+	 * .status()	// get status
+	 * .status{}	// add event when status
+	 */
+	status(value){
+		var result = this;
+		//.status()
+		if(arguments.length  === 0)
+			result	= this.xhr && this.xhr.status;
+		//.status({})
+		else if (objUtils.isPlainObj(value)) {
+			this.on('done', event => {
+				var status		= this.xhr.status;
+				var strStatus	= status + '';
+				// simple status
+				[
+					strStatus, // 200
+					strStatus.substr(0,2) + 'x', // 20x
+					strStatus.charAt(0) + 'xx', // 2xx
+					'xxx',
+				].forEach(st => {
+					if(value.hasOwnProperty(st))
+						value[st](this.error, this);
+				});
+				// interval status
+				for(var i in value){
+					if(i.indexOf('-') !== -1){
+						var intervl	= i.split('-');
+						if(status >= intervl[0] && status <= intervl[1])
+							value[i](this.error, this);
+					}
+				}
+			});
+		}
+		return result;
 	}
 
+	responseType(responseType){
+		if(arguments.length === 1)
+			this[AJAX_OPTIONS_SYMB].responseType	= responseType;
+		else throw new Error('Illegal arguments');
+		return this;
+	}
+
+	get contentType(){
+		return this[AJAX_PRIVATE_SYMB].responseType;
+	}
+	get contentCharset(){
+		return this[AJAX_PRIVATE_SYMB].responseCharset;
+	}
 	// id
 	id(id){
 		if(arguments.length === 0)
 			return this[AJAX_OPTIONS_SYMB].id;
 		else {
-			assert(this.readyState === 0, 'Could not change this when request is already in progress');
-			assert(typeof id === 'string', 'Needs string as identifier');
+			assert(this[AJAX_OPTIONS_SYMB].id === undefined, 'id already set');
+			assert(typeof id === 'string', 'id must be string');
 			this[AJAX_OPTIONS_SYMB].id	= id;
 			return this;
 		}
@@ -54,11 +111,17 @@ class AjaxCaller extends Promise{
 
 	// url
 	get url(){ return this.readyState === 0 ? this.originalURL : this.xhr.responseURL; }
+	set url(href){
+		assert(this[AJAX_PRIVATE_SYMB].done !== true, 'Request done.');
+		this[AJAX_OPTIONS_SYMB].url	= new URL(href);
+	}
 	get originalURL(){ return this[AJAX_OPTIONS_SYMB].url; }
 
 	goToURL(url){
 		assert(typeof url === 'string', 'Illegal argument');
-		//TODO
+		this.url	= url;
+		this[AJAX_PRIVATE_SYMB].redirect = true; // request redirect to this URL
+		this.abort('redirect');
 	}
 
 	/**
@@ -124,6 +187,38 @@ class AjaxCaller extends Promise{
 		return result;
 	}
 	/**
+	 * .responseHeader()	// get all headers
+	 * .responseHeader(headerName)	// get header
+	 */
+	responseHeader(value){
+		var result;
+		//.responseHeader()
+		if(arguments.length === 0){
+			result	= this.xhr && this.xhr.getAllResponseHeaders();
+			//parse headers
+				if(typeof result === 'string'){
+					var tmpRslt = result,
+						indx;
+					result		= {};
+					tmpRslt.split(/[\r\n]+/).forEach(ele => {
+						if(ele){
+							indx	= ele.indexOf(':'); 
+							result[ele.substr(0, indx)]	= ele.substr(indx + 1).trim();
+						}
+					});
+				}
+		}
+		//.responseHeader(headerName)
+		else if(typeof value === 'string')
+			result	= this.xhr && this.xhr.getResponseHeader(strUtils.capitalize(value));
+		//.responseHeader(FX)
+		else if(typeof value === 'function')
+			this.on('headersReceived', value);
+		else throw new Error('Illegal arguments');
+		//return result
+		return result;
+	}
+	/**
 	 * .removeHeader(headerName1, headerName2, ....)
 	 */
 	removeHeader(headerName){
@@ -133,21 +228,62 @@ class AjaxCaller extends Promise{
 	}
 
 	/**
-	 * reply request
+	 * replay request
 	 */
-	reply(){
-		return new AjaxCaller(this[AJAX_OPTIONS_SYMB]);
+	replay(cb){
+		if(typeof cb === 'function')
+			return this.on('replay', cb);
+		else{
+			this.trigger('replay', {xhr: this});
+			return new AjaxCaller(this[AJAX_OPTIONS_SYMB]);
+		}
 	}
 
-	abort(errMessage){
+	abort(value){
 		var private	= this[AJAX_PRIVATE_SYMB];
-		if(private.timeout !== null){
-			clearTimeout(private.timeout);
-			private.timeout = null;
+		if(typeof value	=== 'function')
+			this.on('abort', value);
+		else {
+			if(private.waitP){
+				private.waitP.reject({code: 'abort', message : value});
+				private.waitP = null;
+			}
+			if(this.xhr)
+				this.xhr.abort();
 		}
+		return this;
+	}
 
-		// reject
-		private.reject(errMessage || 'abort');
+	// followMetaRedirects
+	followMetaRedirects(value){
+		if(arguments.length === 0)
+			return this[AJAX_OPTIONS_SYMB].followMetaRedirects; // return current or default URL decoder
+		else if(typeof value === 'boolean')
+			this[AJAX_OPTIONS_SYMB][param]	= value;
+		else if(typeof value === 'function')
+			this.on('metaRedirect', value);
+		else throw new Error('Illegal argument');
+		return this;
+	}
+
+	// progress
+	uploadProgress(cb){
+		if(typeof cb === 'function')
+			this.on('uploadProgress', cb);
+		else return this[AJAX_PRIVATE_SYMB].uploadProgress;
+	}
+	downloadProgress(cb){
+		if(typeof cb === 'function')
+			this.on('downloadProgress', cb);
+		else return this[AJAX_PRIVATE_SYMB].downloadProgress;
+	}
+
+	get error(){
+		//TODO
+	}
+
+	get redirectStack(){
+		return this[AJAX_PRIVATE_SYMB].redirectStack;
 	}
 }
 
@@ -158,7 +294,6 @@ class AjaxCaller extends Promise{
 	'timeout',
 	'wait',
 	'cache',
-	'followMetaRedirects',
 	'accepts',
 	//POST Data
 	'data',
@@ -173,7 +308,7 @@ class AjaxCaller extends Promise{
 	Object.defineProperty(AjaxCaller.prototype, param, {
 		value	: function(value){
 			if(arguments.length === 0)
-				return this[AJAX_OPTIONS_SYMB][param] || ajaxUtils.ajax[param](); // return current or default URL decoder
+				return this[AJAX_OPTIONS_SYMB].hasOwnProperty(param) ? this[AJAX_OPTIONS_SYMB][param] : ajaxUtils.ajax[param](); // return current or default URL decoder
 			else {
 				this[AJAX_OPTIONS_SYMB][param]	= value;
 				return this;
@@ -181,3 +316,21 @@ class AjaxCaller extends Promise{
 		}
 	});
 });
+
+
+/**
+ * Events
+ * 			- headersReceived
+ * 			- readyStateChange
+ * 			- 
+ * 			- downloadProgress
+ * 			- uploadProgress
+ *
+ * 			- error
+ * 			- load  // when native request ends
+ *
+ * 			- metaRedirect
+ * 			- replay
+ *
+ * 			- done	// when request api done
+ */
