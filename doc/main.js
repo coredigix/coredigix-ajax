@@ -36,7 +36,7 @@ ajaxUtils
 	.getJSONOnce(url | options)
 	.getXMLOnce(url | options)
 
-/*<!>*/		.xhr			// get native XHR
+		.xhr			// get native XHR
 
 /*<!>*/		.id('group.subGroup')	// grouper l'appel pour event
 

@@ -2,6 +2,9 @@ var _ajaxCorePrivate	= {
 	timeout	: 60000
 };
 
+// ajax Queu
+var ajaxQueu	= {};
+
 const _ajaxCore = {
 	// timeout
 	timeout		: _ajaxCoreFx('timeout', 	t => assert(typeof t === 'number' && t >= 0, 'Illegal argument: ' + t) ),

@@ -18,8 +18,7 @@ class AjaxCaller extends Promise{
 		this[AJAX_PRIVATE_SYMB] = private;
 		// apply options
 		private.waitP	= delay(0);
-		var p = ;
-		resolve(async () => {
+		var p = (async () => {
 			do {
 				try {
 					private.redirect	= false;
@@ -32,6 +31,8 @@ class AjaxCaller extends Promise{
 			} while(private.redirect === true);
 			this[AJAX_PRIVATE_SYMB].done = true;
 		});
+		// if lazy mode
+		resolve(p);
 	}
 
 	get readyState(){
