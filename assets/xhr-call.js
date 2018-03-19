@@ -52,7 +52,7 @@ function _prepareXHR(xhr, options){
 	for(var i in options.headers)
 		nativeXhr.setRequestHeader(i, options.headers[i]);
 	if(options.dataType)
-		nativeXhr.setRequestHeader('Content-Type', options.dataType + '; charset=' + (options.dataCharset || 'UTF-8'););
+		nativeXhr.setRequestHeader('Content-Type', options.dataType + '; charset=' + (options.dataCharset || 'UTF-8'));
 	return nativeXhr;
 }
 

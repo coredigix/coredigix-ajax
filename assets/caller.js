@@ -4,9 +4,9 @@ const AJAX_PRIVATE_SYMB	= Symbol();
 
 class AjaxCaller extends Promise{
 	constructor(options){
-		var private = {
+		var prvt = {
 			// redirect : false // redirect flag
-			redirectStack: [];
+			redirectStack: []
 		};
 		var resolve, reject;
 		super((res, rej) => {
@@ -15,20 +15,20 @@ class AjaxCaller extends Promise{
 		});
 
 		this[AJAX_OPTIONS_SYMB]	= options;
-		this[AJAX_PRIVATE_SYMB] = private;
+		this[AJAX_PRIVATE_SYMB] = prvt;
 		// apply options
-		private.waitP	= delay(0);
+		prvt.waitP	= delay(0);
 		var p = (async () => {
 			do {
 				try {
-					private.redirect	= false;
-					private.redirectStack.push(options.url);
+					prvt.redirect	= false;
+					prvt.redirectStack.push(options.url);
 					await ajaxCallerRequest(xhr, options);
 				} catch(err) {
-					if(private.redirect !== true)
+					if(prvt.redirect !== true)
 						throw err;
 				}
-			} while(private.redirect === true);
+			} while(prvt.redirect === true);
 			this[AJAX_PRIVATE_SYMB].done = true;
 		});
 		// if lazy mode
@@ -163,7 +163,7 @@ class AjaxCaller extends Promise{
 			}
 		}
 	}
-	set clearParams(){
+	clearParams(){
 		this[AJAX_OPTIONS_SYMB].url.search	= ''; // remove all entries
 	}
 	/**
@@ -225,7 +225,7 @@ class AjaxCaller extends Promise{
 	removeHeader(headerName){
 		assert(this.readyState === 0, 'Request is already in progress');
 		for(var i = 0, len = arguments.length; i < len; ++i)
-			delete this.[AJAX_OPTIONS_SYMB].headers[strUtils.capitalize(arguments[i])];
+			delete this[AJAX_OPTIONS_SYMB].headers[strUtils.capitalize(arguments[i])];
 	}
 
 	/**
@@ -241,13 +241,13 @@ class AjaxCaller extends Promise{
 	}
 
 	abort(value){
-		var private	= this[AJAX_PRIVATE_SYMB];
+		var prvt	= this[AJAX_PRIVATE_SYMB];
 		if(typeof value	=== 'function')
 			this.on('abort', value);
 		else {
-			if(private.waitP){
-				private.waitP.reject({code: 'abort', message : value});
-				private.waitP = null;
+			if(prvt.waitP){
+				prvt.waitP.reject({code: 'abort', message : value});
+				prvt.waitP = null;
 			}
 			if(this.xhr)
 				this.xhr.abort();

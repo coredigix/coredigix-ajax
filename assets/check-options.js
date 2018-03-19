@@ -22,7 +22,7 @@ const AJAX_OPTIONS = [
 		assert	: id => assert(typeof id === 'string', 'id must be of type string')
 	},{
 		param	: 'timeout',
-		assert	: timeout => assert(typeof timeout === 'number') && timeout >= 0, 'timeout must be of type number and greater or equals than 0'),
+		assert	: timeout => assert(typeof timeout === 'number' && timeout >= 0, 'timeout must be of type number and greater or equals than 0'),
 		default	: () => ajaxUtils.ajax.timeout()
 	},{
 		param	: 'wait',
@@ -66,7 +66,7 @@ const AJAX_OPTIONS = [
 				typeof accepts === 'string'
 				|| (
 					Array.isArray(accepts)
-					accepts.every(e => typeof e === 'string')
+					&& accepts.every(e => typeof e === 'string')
 				)
 				, 'illegal argument'
 			);
