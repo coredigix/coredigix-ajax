@@ -1,23 +1,42 @@
-'use strict';
+/*
+this file will generate gulp code to compile this project
+*/
+var coffeescript, gulp, gutil, include, pug;
 
-var gulp	= require('gulp');
-var minify	= require('gulp-minify');
-var include	= require("gulp-include");
-var rename	= require("gulp-rename");
-var concat	= require('gulp-concat');
+gulp = require('gulp');
 
-// gulp.task('js', () => {
-// 	gulp.src('assets/*.js')
-// 		.pipe(include({
-// 			hardFail: true
-// 		}))
-// 		.pipe(rename('index.js'))
-// 		.pipe(minify())
-// 		.pipe(gulp.dest("dist/"));
-// });
+gutil = require('gulp-util');
 
-gulp.task('js', function() {
-  return gulp.src('assets/*.js')
-    .pipe(concat('all.js'))
-    .pipe(gulp.dest('dist/'));
+// minify			= require 'gulp-minify'
+include = require("gulp-include");
+
+// rename			= require "gulp-rename"
+coffeescript = require('gulp-coffeescript');
+
+pug = require('gulp-pug');
+
+//polyfiller 		= require 'gulp-polyfiller'
+// babel			= require 'gulp-babel'
+/* compile for node */
+gulp.task('compile-browser', function() {
+  console.log('-- compile ajax');
+  return gulp.src('assets/browser-ajax.coffee').pipe(include({
+    hardFail: true
+  // .pipe gulp.dest '../js-lib/assets/imports/'
+  })).pipe(gulp.dest('../brighter-ui/assets/coffee/imports/')).pipe(coffeescript({
+    bare: true
+  //TODO add other dists
+  }).on('error', gutil.log)).pipe(gulp.dest('dest/')).on('error', gutil.log);
+});
+
+// compile documentation
+gulp.task('compile-doc', () => {
+  return gulp.src('doc-src/**/[!_]*.pug').pipe(pug({
+    locals: {}
+  })).pipe(gulp.dest("doc-dist/")).on('error', gutil.log);
+});
+
+/* compile */
+gulp.task('default', ['compile-browser'], function() {
+  gulp.watch('assets/**/*.coffee', ['compile-browser']);
 });
